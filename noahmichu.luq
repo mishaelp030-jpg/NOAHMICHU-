@@ -1,5 +1,6 @@
 -- NOAHMICHU🙊🙉🐵
--- loadstring(game:HttpGet("TU_URL_RAW"))()
+-- TOP4: Destroyer, HydraTitan, UFO Alien, Wizard
+-- Bases: 10T-12T | Hop: 5 jugadores
 
 local P,TS,HS=game.Players,game:GetService("TeleportService"),game:GetService("HttpService")
 local LP,PID=P.LocalPlayer,game.PlaceId
@@ -58,7 +59,7 @@ local alertTitle=Instance.new("TextLabel",alert)
 alertTitle.Size=UDim2.new(1,-16,0,32)
 alertTitle.Position=UDim2.new(0,8,0,8)
 alertTitle.BackgroundTransparency=1
-alertTitle.Text="⚠ RAREZA / BASE"
+alertTitle.Text="⚠ TOP4 / BASE 10-12T"
 alertTitle.TextColor3=Color3.fromRGB(255,210,0)
 alertTitle.Font=Enum.Font.GothamBold
 alertTitle.TextSize=18
@@ -231,11 +232,6 @@ local function matchRare(t)
 	n=string.gsub(n,"%s+","")
 	n=string.gsub(n,"%-","")
 	n=string.gsub(n,"_","")
-	n=string.gsub(n,"%'","")
-	if string.find(n,"mapinguari",1,true) then return "Mapinguari" end
-	if string.find(n,"shenlong",1,true) then return "Shenlong" end
-	if string.find(n,"yeti",1,true) then return "Yeti" end
-	if string.find(n,"mecha",1,true) or string.find(n,"mech",1,true) then return "Mech" end
 	if string.find(n,"destroyer",1,true) then return "Destroyer" end
 	if string.find(n,"hydratitan",1,true)
 		or (string.find(n,"hydra",1,true) and string.find(n,"titan",1,true))
@@ -294,7 +290,7 @@ local function scanAll()
 				local r=matchRare(tx)
 				if r then rares[r]=true end
 				local tv=parseTValue(tx)
-				if tv and tv>=10 and tv<=15 then
+				if tv and tv>=10 and tv<=12 then
 					vals[string.format("%.1fT",tv)]=true
 				end
 			end
@@ -465,7 +461,7 @@ local function tryAlert()
 		local parts={}
 		if hasR then table.insert(parts,table.concat(rares," · ")) end
 		if hasV then table.insert(parts,"💰 "..table.concat(vals,", ")) end
-		showAlert("⚠ RAREZA DETECTADA", table.concat(parts," | "))
+		showAlert("⚠ TOP4 / 10-12T", table.concat(parts," | "))
 		alertShown=true
 		updateList()
 		return true
@@ -490,7 +486,7 @@ kB.MouseButton1Click:Connect(function()
 end)
 sB.MouseButton1Click:Connect(saveConfig)
 testB.MouseButton1Click:Connect(function()
-	showAlert("⚠ TEST","Mapinguari · Shenlong · Yeti")
+	showAlert("⚠ TEST","Destroyer · 11.0T")
 end)
 
 P.PlayerRemoving:Connect(function(p)
@@ -499,14 +495,15 @@ end)
 
 pcall(loadConfig)
 
+-- Al entrar: alerta sola
 task.spawn(function()
 	local waits={4,3,4,4,5}
 	for i,w in ipairs(waits) do
-		st.Text="Scan rares "..i.."/"..#waits
+		st.Text="Scan TOP4/10-12T "..i.."/"..#waits
 		task.wait(w)
 		if tryAlert() then return end
 	end
-	st.Text="Sin rares"
+	st.Text="Sin TOP4 / 10-12T"
 end)
 
 task.spawn(function()
@@ -526,4 +523,4 @@ task.spawn(function()
 end)
 
 updateList()
-print("[NOAHMICHU] cargado")
+print("[NOAHMICHU] TOP4 + 10T-12T")
