@@ -1,6 +1,5 @@
 -- NOAHMICHU🙊🙉🐵
--- TOP4: Destroyer, HydraTitan, UFO Alien, Wizard
--- Bases: 10T-12T | Hop: 5 jugadores
+-- TOP4 + bases 10T-12T | Hop libre (sin 5j)
 
 local P,TS,HS=game.Players,game:GetService("TeleportService"),game:GetService("HttpService")
 local LP,PID=P.LocalPlayer,game.PlaceId
@@ -153,7 +152,7 @@ local hB=Instance.new("TextButton",f)
 hB.Size=UDim2.new(0.48,-4,0,22)
 hB.Position=UDim2.new(0.5,0,0,68)
 hB.BackgroundColor3=Color3.fromRGB(180,90,0)
-hB.Text="Hop 5j"
+hB.Text="Hop"
 hB.TextColor3=Color3.new(1,1,1)
 hB.Font=Enum.Font.GothamBold
 hB.TextSize=10
@@ -363,11 +362,12 @@ local function doKick()
 	pcall(function() LP:Kick("") end)
 end
 
+-- Hop libre: cualquier server con gente, no el mismo
 local function doHop()
 	if hopping then return end
 	hopping=true
 	alertShown=false
-	st.Text="Hop 5j..."
+	st.Text="Hop..."
 	local cur=tostring(game.JobId)
 	visited[cur]=true
 	local cands={}
@@ -376,28 +376,18 @@ local function doHop()
 		local s=HS:JSONDecode(game:HttpGet(url))
 		for _,v in pairs(s.data or {}) do
 			local id=tostring(v.id or "")
-			if id~="" and id~=cur and not visited[id] and tonumber(v.playing)==5 then
-				table.insert(cands,id)
+			local pl=tonumber(v.playing) or 0
+			local mx=tonumber(v.maxPlayers) or 99
+			if id~="" and id~=cur and not visited[id] and pl>=1 and pl<mx then
+				table.insert(cands,{id=id,p=pl})
 			end
 		end
 	end)
-	if #cands==0 then
-		pcall(function()
-			local url="https://games.roblox.com/v1/games/"..tostring(PID).."/servers/Public?sortOrder=Desc&limit=100"
-			local s=HS:JSONDecode(game:HttpGet(url))
-			for _,v in pairs(s.data or {}) do
-				local id=tostring(v.id or "")
-				local pl=tonumber(v.playing) or 0
-				if id~="" and id~=cur and not visited[id] and pl>=4 and pl<=5 then
-					table.insert(cands,id)
-				end
-			end
-		end)
-	end
+	table.sort(cands,function(a,b) return a.p>b.p end)
 	if #cands>0 then
-		local pick=cands[math.random(1,#cands)]
-		visited[pick]=true
-		TS:TeleportToPlaceInstance(PID,pick,LP)
+		local pick=cands[math.random(1,math.min(12,#cands))]
+		visited[pick.id]=true
+		TS:TeleportToPlaceInstance(PID,pick.id,LP)
 	else
 		visited={[cur]=true}
 		TS:Teleport(PID)
@@ -495,11 +485,10 @@ end)
 
 pcall(loadConfig)
 
--- Al entrar: alerta sola
 task.spawn(function()
 	local waits={4,3,4,4,5}
 	for i,w in ipairs(waits) do
-		st.Text="Scan TOP4/10-12T "..i.."/"..#waits
+		st.Text="Scan "..i.."/"..#waits
 		task.wait(w)
 		if tryAlert() then return end
 	end
@@ -523,4 +512,4 @@ task.spawn(function()
 end)
 
 updateList()
-print("[NOAHMICHU] TOP4 + 10T-12T")
+print("[NOAHMICHU] Hop libre + TOP4 + 10-12T")
