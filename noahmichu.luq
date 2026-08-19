@@ -1,5 +1,5 @@
--- NOAHMICHU🙊🙉🐵 | Completo
--- TOP4 + 10T-12T | Hop libre | Auto Kick estricto | Alerta + sonido
+-- NOAHMICHU🙊🙉🐵
+-- 1 scan → si no TOP4/10-12T → Hop | Auto Kick estricto
 -- loadstring(game:HttpGet("https://raw.githubusercontent.com/mishaelp030-jpg/NOAHMICHU-/main/noahmichu.luq?t="..tick()))()
 
 local P,TS,HS=game.Players,game:GetService("TeleportService"),game:GetService("HttpService")
@@ -11,6 +11,7 @@ local visited={[tostring(game.JobId)]=true}
 local alertShown=false
 local lastHas,lastRares=false,{}
 local lastVal,lastValList=false,{}
+local AutoTop4Hop=true
 local CF="Noah.cfg"
 local ALERT_SOUND_ID="rbxassetid://139235100"
 
@@ -25,7 +26,6 @@ local function playAlertMusic()
 		s.Name="NoahAlert"
 		s.SoundId=ALERT_SOUND_ID
 		s.Volume=3
-		s.Looped=false
 		s.Parent=game:GetService("SoundService")
 		s:Play()
 		task.delay(8,function() pcall(function() s:Destroy() end) end)
@@ -105,8 +105,8 @@ toggle.ZIndex=10
 Instance.new("UICorner",toggle).CornerRadius=UDim.new(1,0)
 
 local f=Instance.new("Frame",g)
-f.Size=UDim2.new(0,220,0,280)
-f.Position=UDim2.new(0,58,0.5,-140)
+f.Size=UDim2.new(0,220,0,300)
+f.Position=UDim2.new(0,58,0.5,-150)
 f.BackgroundColor3=Color3.fromRGB(18,20,26)
 f.Active=true
 f.Draggable=true
@@ -171,9 +171,19 @@ kB.Font=Enum.Font.GothamBold
 kB.TextSize=10
 Instance.new("UICorner",kB).CornerRadius=UDim.new(0,4)
 
+local aB=Instance.new("TextButton",f)
+aB.Size=UDim2.new(1,-8,0,22)
+aB.Position=UDim2.new(0,4,0,120)
+aB.BackgroundColor3=Color3.fromRGB(0,140,60)
+aB.Text="Auto TOP4 Hop: ON"
+aB.TextColor3=Color3.new(1,1,1)
+aB.Font=Enum.Font.GothamBold
+aB.TextSize=10
+Instance.new("UICorner",aB).CornerRadius=UDim.new(0,4)
+
 local sB=Instance.new("TextButton",f)
 sB.Size=UDim2.new(0.48,-4,0,22)
-sB.Position=UDim2.new(0,4,0,120)
+sB.Position=UDim2.new(0,4,0,146)
 sB.BackgroundColor3=Color3.fromRGB(50,80,140)
 sB.Text="Save"
 sB.TextColor3=Color3.new(1,1,1)
@@ -183,7 +193,7 @@ Instance.new("UICorner",sB).CornerRadius=UDim.new(0,4)
 
 local testB=Instance.new("TextButton",f)
 testB.Size=UDim2.new(0.48,-4,0,22)
-testB.Position=UDim2.new(0.5,0,0,120)
+testB.Position=UDim2.new(0.5,0,0,146)
 testB.BackgroundColor3=Color3.fromRGB(255,200,0)
 testB.Text="Test alerta"
 testB.TextColor3=Color3.fromRGB(0,0,0)
@@ -192,8 +202,8 @@ testB.TextSize=10
 Instance.new("UICorner",testB).CornerRadius=UDim.new(0,4)
 
 local list=Instance.new("ScrollingFrame",f)
-list.Size=UDim2.new(1,-8,1,-150)
-list.Position=UDim2.new(0,4,0,146)
+list.Size=UDim2.new(1,-8,1,-176)
+list.Position=UDim2.new(0,4,0,172)
 list.BackgroundTransparency=1
 list.ScrollBarThickness=2
 local lay=Instance.new("UIListLayout",list)
@@ -207,7 +217,7 @@ end)
 
 local function saveConfig()
 	pcall(function()
-		if writefile then writefile(CF,HS:JSONEncode({ESP=EO,Kick=AK})) end
+		if writefile then writefile(CF,HS:JSONEncode({ESP=EO,Kick=AK,AutoHop=AutoTop4Hop})) end
 	end)
 	st.Text="Guardado"
 	st.BackgroundColor3=Color3.fromRGB(30,100,50)
@@ -219,12 +229,15 @@ local function loadConfig()
 			local d=HS:JSONDecode(readfile(CF))
 			if d.ESP~=nil then EO=d.ESP end
 			if d.Kick~=nil then AK=d.Kick end
+			if d.AutoHop~=nil then AutoTop4Hop=d.AutoHop end
 		end
 	end)
 	eB.Text=EO and "ESP ON" or "ESP OFF"
 	eB.BackgroundColor3=EO and Color3.fromRGB(0,150,70) or Color3.fromRGB(120,40,40)
 	kB.Text=AK and "Auto Kick: ON" or "Auto Kick: OFF"
 	kB.BackgroundColor3=AK and Color3.fromRGB(0,140,60) or Color3.fromRGB(120,40,40)
+	aB.Text=AutoTop4Hop and "Auto TOP4 Hop: ON" or "Auto TOP4 Hop: OFF"
+	aB.BackgroundColor3=AutoTop4Hop and Color3.fromRGB(0,140,60) or Color3.fromRGB(120,40,40)
 end
 
 local function matchRare(t)
@@ -465,6 +478,11 @@ kB.MouseButton1Click:Connect(function()
 	hadAnimal=false
 	animalTime=0
 end)
+aB.MouseButton1Click:Connect(function()
+	AutoTop4Hop=not AutoTop4Hop
+	aB.Text=AutoTop4Hop and "Auto TOP4 Hop: ON" or "Auto TOP4 Hop: OFF"
+	aB.BackgroundColor3=AutoTop4Hop and Color3.fromRGB(0,140,60) or Color3.fromRGB(120,40,40)
+end)
 sB.MouseButton1Click:Connect(saveConfig)
 testB.MouseButton1Click:Connect(function()
 	showAlert("⚠ TEST","Destroyer · 11.0T")
@@ -476,19 +494,25 @@ end)
 
 pcall(loadConfig)
 
+-- 1 SOLO scan → si no hay TOP4 → Hop
 task.spawn(function()
-	local waits={5,5,6,6}
-	for i,w in ipairs(waits) do
-		st.Text="Scan "..i.."/"..#waits
-		task.wait(w)
-		if tryAlert() then updateList() return end
+	st.Text="Scan TOP4..."
+	task.wait(6)
+	if tryAlert() then
+		updateList()
+		return
 	end
-	st.Text="Sin TOP4 / 10-12T"
+	st.Text="Sin TOP4"
 	updateList()
+	if AutoTop4Hop and not hopping and not leaving then
+		st.Text="Sin TOP4 → Hop"
+		task.wait(0.4)
+		doHop()
+	end
 end)
 
 task.spawn(function()
-	task.wait(25)
+	task.wait(20)
 	while g.Parent do
 		if not hopping and not leaving then tryAlert() end
 		task.wait(10)
@@ -510,4 +534,4 @@ task.spawn(function()
 end)
 
 updateList()
-print("[NOAHMICHU] completo OK")
+print("[NOAHMICHU] 1 scan → hop")
