@@ -1,5 +1,6 @@
 -- NOAHMICHU🙊🙉🐵
--- TOP4 + bases 10T-12T | Hop libre (sin 5j)
+-- TOP4 + 10T-12T | Hop libre | Auto Kick reforzado
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/mishaelp030-jpg/NOAHMICHU-/main/noahmichu.luq"))()
 
 local P,TS,HS=game.Players,game:GetService("TeleportService"),game:GetService("HttpService")
 local LP,PID=P.LocalPlayer,game.PlaceId
@@ -10,6 +11,7 @@ local visited={[tostring(game.JobId)]=true}
 local alertShown=false
 local lastHas,lastRares=false,{}
 local lastVal,lastValList=false,{}
+local seenMsg={}
 local CF="Noah.cfg"
 local ALERT_SOUND_ID="rbxassetid://139235100"
 
@@ -308,13 +310,20 @@ end
 
 local function isStolen(n)
 	n=string.lower(tostring(n or ""))
-	return string.find(n,"stolen",1,true)
-		or string.find(n,"steal",1,true)
-		or string.find(n,"robado",1,true)
-		or string.find(n,"brainrot",1,true)
-		or string.find(n,"carrying",1,true)
-		or string.find(n,"heldpet",1,true)
-		or string.find(n,"grabbed",1,true)
+	if n=="" then return false end
+	if string.find(n,"stolen",1,true) then return true end
+	if string.find(n,"steal",1,true) then return true end
+	if string.find(n,"robado",1,true) then return true end
+	if string.find(n,"robar",1,true) then return true end
+	if string.find(n,"brainrot",1,true) then return true end
+	if string.find(n,"carrying",1,true) then return true end
+	if string.find(n,"heldpet",1,true) then return true end
+	if string.find(n,"held",1,true) then return true end
+	if string.find(n,"grabbed",1,true) then return true end
+	if string.find(n,"grab",1,true) then return true end
+	if string.find(n,"carry",1,true) then return true end
+	if matchRare(n) then return true end
+	return false
 end
 
 local function getStolenPet(p)
@@ -325,7 +334,42 @@ local function getStolenPet(p)
 			return true,v.Name
 		end
 	end
+	for _,v in pairs(c:GetDescendants()) do
+		if (v:IsA("Model") or v:IsA("Tool")) and isStolen(v.Name) then
+			return true,v.Name
+		end
+	end
+	local bp=p:FindFirstChild("Backpack")
+	if bp then
+		for _,v in pairs(bp:GetChildren()) do
+			if (v:IsA("Model") or v:IsA("Tool")) and isStolen(v.Name) then
+				return true,v.Name
+			end
+		end
+	end
 	return false,nil
+end
+
+local function checkStealMessage()
+	local pg=LP:FindFirstChild("PlayerGui")
+	if not pg then return false end
+	for _,v in pairs(pg:GetDescendants()) do
+		if v:IsA("TextLabel") or v:IsA("TextButton") then
+			local t=string.lower(tostring(v.Text or ""))
+			if t~="" and not seenMsg[t] then
+				if string.find(t,"stole",1,true)
+					or string.find(t,"stolen",1,true)
+					or string.find(t,"robaste",1,true)
+					or string.find(t,"robado",1,true)
+					or string.find(t,"you got",1,true)
+					or string.find(t,"claimed",1,true) then
+					seenMsg[t]=true
+					return true
+				end
+			end
+		end
+	end
+	return false
 end
 
 local function makeESP(p,steal,pet)
@@ -362,11 +406,11 @@ local function doKick()
 	pcall(function() LP:Kick("") end)
 end
 
--- Hop libre: cualquier server con gente, no el mismo
 local function doHop()
 	if hopping then return end
 	hopping=true
 	alertShown=false
+	table.clear(seenMsg)
 	st.Text="Hop..."
 	local cur=tostring(game.JobId)
 	visited[cur]=true
@@ -397,16 +441,25 @@ end
 
 local function checkKick()
 	if leaving or not AK then return end
-	local has=getStolenPet(LP)
-	if has and not hadAnimal then
-		hadAnimal=true
-		animalTime=tick()
-	elseif has and hadAnimal then
-		if tick()-animalTime>=1.2 then doKick() end
-	else
-		hadAnimal=false
-		animalTime=0
+	local has,petName=getStolenPet(LP)
+	if has then
+		if not hadAnimal then
+			hadAnimal=true
+			animalTime=tick()
+			st.Text="Robando... "..tostring(petName or "")
+		elseif tick()-animalTime>=1.0 then
+			doKick()
+		end
+		return
 	end
+	if checkStealMessage() then
+		st.Text="Robo confirmado → KICK"
+		task.wait(0.3)
+		doKick()
+		return
+	end
+	hadAnimal=false
+	animalTime=0
 end
 
 local function updateList()
@@ -473,6 +526,7 @@ kB.MouseButton1Click:Connect(function()
 	kB.BackgroundColor3=AK and Color3.fromRGB(0,140,60) or Color3.fromRGB(120,40,40)
 	leaving=false
 	hadAnimal=false
+	animalTime=0
 end)
 sB.MouseButton1Click:Connect(saveConfig)
 testB.MouseButton1Click:Connect(function()
@@ -507,9 +561,9 @@ end)
 task.spawn(function()
 	while g.Parent do
 		if AK then pcall(checkKick) end
-		task.wait(0.4)
+		task.wait(0.35)
 	end
 end)
 
 updateList()
-print("[NOAHMICHU] Hop libre + TOP4 + 10-12T")
+print("[NOAHMICHU] completo + auto kick reforzado")
