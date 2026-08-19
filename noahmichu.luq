@@ -1,6 +1,6 @@
 -- NOAHMICHU🙊🙉🐵
--- TOP4 + 10T-12T | Hop libre | Auto Kick reforzado
--- loadstring(game:HttpGet("https://raw.githubusercontent.com/mishaelp030-jpg/NOAHMICHU-/main/noahmichu.luq"))()
+-- TOP4 + 10T-12T | Hop libre | Auto Kick estricto
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/mishaelp030-jpg/NOAHMICHU-/main/noahmichu.luq?t="..tick()))()
 
 local P,TS,HS=game.Players,game:GetService("TeleportService"),game:GetService("HttpService")
 local LP,PID=P.LocalPlayer,game.PlaceId
@@ -308,21 +308,17 @@ local function clearESP()
 	table.clear(ESP)
 end
 
+-- Auto Kick ESTRICTO (sin falsos positivos)
 local function isStolen(n)
 	n=string.lower(tostring(n or ""))
 	if n=="" then return false end
 	if string.find(n,"stolen",1,true) then return true end
 	if string.find(n,"steal",1,true) then return true end
 	if string.find(n,"robado",1,true) then return true end
-	if string.find(n,"robar",1,true) then return true end
 	if string.find(n,"brainrot",1,true) then return true end
-	if string.find(n,"carrying",1,true) then return true end
+	if string.find(n,"carryingpet",1,true) then return true end
 	if string.find(n,"heldpet",1,true) then return true end
-	if string.find(n,"held",1,true) then return true end
-	if string.find(n,"grabbed",1,true) then return true end
-	if string.find(n,"grab",1,true) then return true end
-	if string.find(n,"carry",1,true) then return true end
-	if matchRare(n) then return true end
+	if string.find(n,"grabbedpet",1,true) then return true end
 	return false
 end
 
@@ -334,19 +330,6 @@ local function getStolenPet(p)
 			return true,v.Name
 		end
 	end
-	for _,v in pairs(c:GetDescendants()) do
-		if (v:IsA("Model") or v:IsA("Tool")) and isStolen(v.Name) then
-			return true,v.Name
-		end
-	end
-	local bp=p:FindFirstChild("Backpack")
-	if bp then
-		for _,v in pairs(bp:GetChildren()) do
-			if (v:IsA("Model") or v:IsA("Tool")) and isStolen(v.Name) then
-				return true,v.Name
-			end
-		end
-	end
 	return false,nil
 end
 
@@ -356,13 +339,11 @@ local function checkStealMessage()
 	for _,v in pairs(pg:GetDescendants()) do
 		if v:IsA("TextLabel") or v:IsA("TextButton") then
 			local t=string.lower(tostring(v.Text or ""))
-			if t~="" and not seenMsg[t] then
-				if string.find(t,"stole",1,true)
-					or string.find(t,"stolen",1,true)
+			if #t>4 and #t<80 and not seenMsg[t] then
+				if string.find(t,"you stole",1,true)
+					or string.find(t,"successfully stole",1,true)
 					or string.find(t,"robaste",1,true)
-					or string.find(t,"robado",1,true)
-					or string.find(t,"you got",1,true)
-					or string.find(t,"claimed",1,true) then
+					or string.find(t,"has robado",1,true) then
 					seenMsg[t]=true
 					return true
 				end
@@ -447,14 +428,14 @@ local function checkKick()
 			hadAnimal=true
 			animalTime=tick()
 			st.Text="Robando... "..tostring(petName or "")
-		elseif tick()-animalTime>=1.0 then
+		elseif tick()-animalTime>=1.2 then
 			doKick()
 		end
 		return
 	end
 	if checkStealMessage() then
-		st.Text="Robo confirmado → KICK"
-		task.wait(0.3)
+		st.Text="Robo OK → KICK"
+		task.wait(0.4)
 		doKick()
 		return
 	end
@@ -566,4 +547,4 @@ task.spawn(function()
 end)
 
 updateList()
-print("[NOAHMICHU] completo + auto kick reforzado")
+print("[NOAHMICHU] auto kick estricto")
