@@ -1,5 +1,5 @@
 -- NOAHMICHU🙊🙉🐵
--- 1 scan → si no TOP4/10-12T → Hop | Auto Kick estricto
+-- TOP4 + 10B-100B / 1T | 1 scan → hop | prioridad servers medios
 -- loadstring(game:HttpGet("https://raw.githubusercontent.com/mishaelp030-jpg/NOAHMICHU-/main/noahmichu.luq?t="..tick()))()
 
 local P,TS,HS=game.Players,game:GetService("TeleportService"),game:GetService("HttpService")
@@ -23,7 +23,6 @@ g.Parent=game:GetService("CoreGui")
 local function playAlertMusic()
 	pcall(function()
 		local s=Instance.new("Sound")
-		s.Name="NoahAlert"
 		s.SoundId=ALERT_SOUND_ID
 		s.Volume=3
 		s.Parent=game:GetService("SoundService")
@@ -61,7 +60,7 @@ local alertTitle=Instance.new("TextLabel",alert)
 alertTitle.Size=UDim2.new(1,-16,0,32)
 alertTitle.Position=UDim2.new(0,8,0,8)
 alertTitle.BackgroundTransparency=1
-alertTitle.Text="⚠ TOP4 / BASE 10-12T"
+alertTitle.Text="⚠ TOP4 / BASE $"
 alertTitle.TextColor3=Color3.fromRGB(255,210,0)
 alertTitle.Font=Enum.Font.GothamBold
 alertTitle.TextSize=18
@@ -253,11 +252,33 @@ local function matchRare(t)
 	return nil
 end
 
-local function parseTValue(text)
+-- 10B..100B y ~1T (0.8T..1.2T)
+local function parseMoneyValue(text)
 	if not text then return nil end
-	local s=string.gsub(string.gsub(string.lower(tostring(text)),",",""),"%s+","")
-	local num=string.match(s,"(%d+%.?%d*)t")
-	return num and tonumber(num) or nil
+	local s=string.lower(tostring(text))
+	s=string.gsub(s,",","")
+	s=string.gsub(s,"%s+","")
+	local num,suf=string.match(s,"(%d+%.?%d*)([bt])")
+	if not num then return nil end
+	num=tonumber(num)
+	if not num then return nil end
+	if suf=="b" then return num*1e9 end
+	if suf=="t" then return num*1e12 end
+	return nil
+end
+
+local function isTargetMoney(v)
+	if not v then return false end
+	-- 10B a 100B
+	if v>=10e9 and v<=100e9 then return true end
+	-- ~1T (0.8T a 1.2T)
+	if v>=0.8e12 and v<=1.2e12 then return true end
+	return false
+end
+
+local function formatMoney(v)
+	if v>=1e12 then return string.format("%.1fT",v/1e12) end
+	return string.format("%.0fB",v/1e9)
 end
 
 local function isMyCharacter(obj)
@@ -277,8 +298,8 @@ local function scanAll()
 		if not tx or tx=="" then return end
 		local r=matchRare(tx)
 		if r then rares[r]=true end
-		local tv=parseTValue(tx)
-		if tv and tv>=10 and tv<=12 then vals[string.format("%.1fT",tv)]=true end
+		local mv=parseMoneyValue(tx)
+		if isTargetMoney(mv) then vals[formatMoney(mv)]=true end
 	end
 	for _,a in pairs(workspace:GetChildren()) do
 		if not isMyCharacter(a) and (a:IsA("Model") or a:IsA("Folder")) then
@@ -366,6 +387,7 @@ local function doKick()
 	pcall(function() LP:Kick("") end)
 end
 
+-- Hop: prioriza servers 4-10 jugs (más chance de bases valuadas)
 local function doHop()
 	if hopping then return end
 	hopping=true
@@ -373,7 +395,7 @@ local function doHop()
 	st.Text="Hop..."
 	local cur=tostring(game.JobId)
 	visited[cur]=true
-	local cands={}
+	local prefer,other={},{}
 	pcall(function()
 		local url="https://games.roblox.com/v1/games/"..tostring(PID).."/servers/Public?sortOrder=Desc&limit=100"
 		local s=HS:JSONDecode(game:HttpGet(url))
@@ -382,13 +404,18 @@ local function doHop()
 			local pl=tonumber(v.playing) or 0
 			local mx=tonumber(v.maxPlayers) or 99
 			if id~="" and id~=cur and not visited[id] and pl>=1 and pl<mx then
-				table.insert(cands,{id=id,p=pl})
+				if pl>=4 and pl<=10 then
+					table.insert(prefer,{id=id,p=pl})
+				else
+					table.insert(other,{id=id,p=pl})
+				end
 			end
 		end
 	end)
+	local cands=#prefer>0 and prefer or other
 	table.sort(cands,function(a,b) return a.p>b.p end)
 	if #cands>0 then
-		local pick=cands[math.random(1,math.min(12,#cands))]
+		local pick=cands[math.random(1,math.min(10,#cands))]
 		visited[pick.id]=true
 		TS:TeleportToPlaceInstance(PID,pick.id,LP)
 	else
@@ -457,7 +484,7 @@ local function tryAlert()
 		local parts={}
 		if hasR then table.insert(parts,table.concat(rares," · ")) end
 		if hasV then table.insert(parts,"💰 "..table.concat(vals,", ")) end
-		showAlert("⚠ TOP4 / 10-12T", table.concat(parts," | "))
+		showAlert("⚠ TOP4 / 10B-100B / 1T", table.concat(parts," | "))
 		alertShown=true
 	end
 	return hasR or hasV
@@ -485,7 +512,7 @@ aB.MouseButton1Click:Connect(function()
 end)
 sB.MouseButton1Click:Connect(saveConfig)
 testB.MouseButton1Click:Connect(function()
-	showAlert("⚠ TEST","Destroyer · 11.0T")
+	showAlert("⚠ TEST","Destroyer · 50B · 1T")
 end)
 
 P.PlayerRemoving:Connect(function(p)
@@ -494,18 +521,18 @@ end)
 
 pcall(loadConfig)
 
--- 1 SOLO scan → si no hay TOP4 → Hop
+-- 1 scan → si no hay → hop
 task.spawn(function()
-	st.Text="Scan TOP4..."
+	st.Text="Scan..."
 	task.wait(6)
 	if tryAlert() then
 		updateList()
 		return
 	end
-	st.Text="Sin TOP4"
+	st.Text="Sin target"
 	updateList()
 	if AutoTop4Hop and not hopping and not leaving then
-		st.Text="Sin TOP4 → Hop"
+		st.Text="Sin target → Hop"
 		task.wait(0.4)
 		doHop()
 	end
@@ -534,4 +561,4 @@ task.spawn(function()
 end)
 
 updateList()
-print("[NOAHMICHU] 1 scan → hop")
+print("[NOAHMICHU] TOP4 + 10B-100B + 1T")
